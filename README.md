@@ -7,7 +7,7 @@ No install, no account, no server needed. Open `index.html` in a browser, or hos
 - **Multiple cars**: year/make/model, nickname, VIN, plate, photo, odometer, oil spec
 - **Dated service records**: date, odometer, type of work, shop or DIY, cost, parts, notes
 - **Receipts**: attach photos or PDFs to any record; view them in the app, open them in a new tab, or download them
-- **Oil change tracking**: the next change is calculated from your schedule (miles and/or months, whichever comes first). After logging one, you can add the next change to your calendar (.ics) or print a windshield sticker
+- **Oil change tracking**: the next change is calculated from your schedule (miles and/or months, whichever comes first). After logging one, you can add the next change to your calendar (.ics)
 - **Reminders for any service**: set a "next due" mileage or date on any record (tire rotations, brake fluid, etc.)
 - **Garage overview**: shows what is due soon or overdue across all your cars
 - **Search & filter** by type, year and keyword; spending totals per car and per year
