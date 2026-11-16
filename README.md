@@ -16,3 +16,5 @@ No install, no account, no server needed. Open `index.html` in a browser, or hos
 ## Your data
 Everything is stored in your browser's IndexedDB on the device you use. Export a backup from the ⋯ menu
 now and then, and import it to move your log to another device.
+
+**Live site:** https://paxman06.github.io/Test-App/
