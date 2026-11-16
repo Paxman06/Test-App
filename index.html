@@ -1,0 +1,1100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f6feb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Car Maintenance Log</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+<style>
+:root{
+  --bg:#f4f6f9; --surface:#fff; --surface-2:#f0f3f7; --border:#dde3ea; --text:#17202b; --muted:#5d6b7c;
+  --accent:#1f6feb; --accent-ink:#fff; --accent-soft:#e3edff;
+  --ok:#1a7f37; --ok-soft:#dcf5e3; --warn:#9a6700; --warn-soft:#fff4d1; --bad:#c62828; --bad-soft:#fde4e4;
+  --shadow:0 1px 2px rgba(16,24,40,.06),0 2px 8px rgba(16,24,40,.06); --radius:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0e1116; --surface:#161b22; --surface-2:#1d242d; --border:#2b333d; --text:#e6edf3; --muted:#93a1b0;
+    --accent:#4c8dff; --accent-ink:#06101f; --accent-soft:#16253f;
+    --ok:#4ac26b; --ok-soft:#123321; --warn:#e3b341; --warn-soft:#3a2d0c; --bad:#ff6b6b; --bad-soft:#3d1617;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
+a{color:var(--accent);text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+header.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+header.top .wrap{display:flex;align-items:center;gap:12px;height:58px}
+.brand{font-weight:700;font-size:17px;display:flex;align-items:center;gap:8px;color:var(--text)}
+.brand span{font-size:20px}
+.spacer{flex:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--border);background:var(--surface);padding:8px 14px;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px;white-space:nowrap;transition:background .15s,border-color .15s}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn.danger{color:var(--bad)}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.sm{padding:5px 10px;font-size:13px;border-radius:8px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.icon-btn{border:none;background:transparent;cursor:pointer;padding:6px;border-radius:8px;color:var(--muted);font-size:18px;line-height:1}
+.icon-btn:hover{background:var(--surface-2);color:var(--text)}
+h1{font-size:24px;margin:22px 0 4px}
+h2{font-size:18px;margin:0 0 12px}
+h3{font-size:15px;margin:0 0 8px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.pad{padding:16px}
+.grid{display:grid;gap:14px}
+.cars-grid{grid-template-columns:repeat(auto-fill,minmax(270px,1fr))}
+.car-card{overflow:hidden;cursor:pointer;display:flex;flex-direction:column;transition:transform .12s,border-color .12s;color:inherit}
+.car-card:hover{transform:translateY(-2px);border-color:var(--accent)}
+.car-photo{aspect-ratio:16/9;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:54px;overflow:hidden}
+.car-photo img{width:100%;height:100%;object-fit:cover}
+.car-card .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px}
+.car-name{font-weight:700;font-size:16px}
+.kv{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.kv span:first-child{color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.soon{background:var(--warn-soft);color:var(--warn)}
+.pill.overdue{background:var(--bad-soft);color:var(--bad)}
+.pill.none{background:var(--surface-2);color:var(--muted)}
+.empty{text-align:center;padding:48px 16px}
+.empty .big{font-size:56px}
+.page-head{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin:18px 0 16px}
+.page-head .titles{flex:1;min-width:220px}
+.back{display:inline-flex;align-items:center;gap:4px;margin-top:16px;font-weight:600;font-size:14px}
+.car-hero{display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:start}
+.car-hero .car-photo{border-radius:12px;aspect-ratio:4/3}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:3px 9px;font-size:12.5px}
+.chip b{font-weight:600}
+.layout{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start;margin-bottom:40px}
+.side{display:flex;flex-direction:column;gap:16px;position:sticky;top:74px}
+.oil-card{border-left:4px solid var(--muted)}
+.oil-card.ok{border-left-color:var(--ok)} .oil-card.soon{border-left-color:var(--warn)} .oil-card.overdue{border-left-color:var(--bad)}
+.oil-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.due-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.due-box{background:var(--surface-2);border-radius:10px;padding:10px}
+.due-box .lbl{font-size:12px;color:var(--muted)}
+.due-box .val{font-weight:700;font-size:16px}
+.due-box .sub{font-size:12px}
+.bar{height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden;margin:6px 0 2px}
+.bar i{display:block;height:100%;background:var(--ok);border-radius:99px}
+.bar.soon i{background:var(--warn)} .bar.overdue i{background:var(--bad)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface-2);border-radius:10px;padding:10px;text-align:center}
+.stat .val{font-weight:700;font-size:16px}
+.stat .lbl{font-size:11.5px;color:var(--muted)}
+.upcoming-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--border)}
+.upcoming-item:first-of-type{border-top:none}
+.upcoming-item .t{flex:1;min-width:0}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;padding:12px;border-bottom:1px solid var(--border)}
+.toolbar input[type=search]{flex:1;min-width:160px}
+.year-head{padding:10px 16px;background:var(--surface-2);font-weight:700;font-size:13px;color:var(--muted);display:flex;justify-content:space-between;border-bottom:1px solid var(--border)}
+.rec{display:grid;grid-template-columns:62px 1fr auto;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;align-items:start}
+.rec:hover{background:var(--surface-2)}
+.rec:last-child{border-bottom:none}
+.rec-date{text-align:center;background:var(--surface-2);border-radius:10px;padding:6px 2px;line-height:1.1}
+.rec-date .m{font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700}
+.rec-date .d{font-size:20px;font-weight:700}
+.rec-title{font-weight:600}
+.rec-meta{font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:2px}
+.rec-cost{font-weight:700;text-align:right}
+.cat{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:var(--accent-soft);color:var(--accent);margin-right:6px;vertical-align:1px}
+.cat.oil{background:#fbe7c6;color:#8a5300}
+@media (prefers-color-scheme: dark){.cat.oil{background:#3b2a0c;color:#f0b44c}}
+.thumbs{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.thumb{width:44px;height:44px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--bad);cursor:pointer;flex:none}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb.lg{width:92px;height:92px;font-size:13px;flex-direction:column;gap:2px}
+.thumb.lg small{color:var(--muted);font-weight:500;font-size:10px;max-width:84px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+input[type=text],input[type=number],input[type=date],input[type=search],select,textarea{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:9px 11px;outline:none;min-height:40px}
+textarea{min-height:76px;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.toolbar select{width:auto}
+label.f{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:var(--muted)}
+label.f > :not(span){color:var(--text);font-weight:400}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid .full{grid-column:1/-1}
+fieldset{border:1px solid var(--border);border-radius:12px;padding:12px;margin:0}
+legend{font-weight:700;font-size:13px;padding:0 6px}
+.hint{font-size:12px;color:var(--muted);font-weight:400}
+.dropzone{border:2px dashed var(--border);border-radius:12px;padding:16px;text-align:center;cursor:pointer;color:var(--muted);transition:border-color .15s,background .15s}
+.dropzone:hover,.dropzone.over{border-color:var(--accent);background:var(--accent-soft)}
+.file-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.file-item{position:relative}
+.file-item .x{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;border:none;background:var(--bad);color:#fff;font-size:13px;cursor:pointer;line-height:22px;padding:0}
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(8,12,18,.55);display:flex;align-items:flex-start;justify-content:center;padding:4vh 12px;overflow-y:auto;z-index:100;animation:fade .15s}
+.modal{background:var(--surface);border-radius:16px;width:100%;max-width:640px;box-shadow:0 20px 60px rgba(0,0,0,.35);animation:pop .18s}
+.modal.wide{max-width:960px}
+.modal-head{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid var(--border)}
+.modal-head h2{margin:0;flex:1;font-size:17px}
+.modal-body{padding:16px;display:flex;flex-direction:column;gap:14px}
+.modal-foot{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--border);flex-wrap:wrap}
+.modal-foot .left{margin-right:auto}
+.viewer-img{max-width:100%;max-height:75vh;display:block;margin:0 auto;border-radius:8px}
+.viewer-pdf{width:100%;height:75vh;border:none;border-radius:8px;background:#fff}
+@keyframes fade{from{opacity:0}}
+@keyframes pop{from{transform:translateY(10px) scale(.98);opacity:0}}
+.detail-row{display:grid;grid-template-columns:130px 1fr;gap:8px;padding:7px 0;border-top:1px solid var(--border);font-size:14px}
+.detail-row:first-child{border-top:none}
+.detail-row > span:first-child{color:var(--muted)}
+.pre{white-space:pre-wrap}
+.success-hero{text-align:center;padding:8px 0}
+.success-hero .big{font-size:48px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:pop .2s;max-width:calc(100% - 32px)}
+.menu{position:absolute;right:0;top:calc(100% + 6px);background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.18);min-width:220px;padding:6px;z-index:50}
+.menu button{display:block;width:100%;text-align:left;border:none;background:none;padding:9px 12px;border-radius:8px;cursor:pointer}
+.menu button:hover{background:var(--surface-2)}
+.rel{position:relative}
+.show-sm{display:none}
+@media (max-width:560px){.show-sm{display:inline}}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:24px 16px 32px}
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr}
+  .side{position:static}
+}
+@media (max-width:560px){
+  .car-hero{grid-template-columns:1fr}
+  .car-hero .car-photo{aspect-ratio:16/9}
+  .form-grid{grid-template-columns:1fr}
+  .rec{grid-template-columns:52px 1fr;}
+  .rec-cost{grid-column:2;text-align:left;margin-top:-4px}
+  .hide-sm{display:none}
+  .detail-row{grid-template-columns:1fr;gap:2px}
+  .overlay{padding:0;align-items:flex-end}
+  .modal{border-radius:16px 16px 0 0;max-height:94vh;overflow-y:auto}
+}
+@media print{
+  body *{visibility:hidden}
+  #print-area,#print-area *{visibility:visible}
+  #print-area{position:absolute;left:0;top:0}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#/"><span>🔧</span> <b class="hide-sm" style="font-weight:inherit">Car Maintenance Log</b><b class="show-sm" style="font-weight:inherit">Car Log</b></a>
+    <div class="spacer"></div>
+    <button class="btn primary" id="hdr-add-car">+ Add car</button>
+    <div class="rel">
+      <button class="icon-btn" id="menu-btn" title="Backup & settings" aria-label="Menu">⋯</button>
+    </div>
+  </div>
+</header>
+<main class="wrap" id="app"></main>
+<footer>Your cars, records and receipts are stored privately on this device. Use <b>⋯ → Export backup</b> regularly to keep a copy.</footer>
+<input type="file" id="import-input" accept="application/json,.json" hidden>
+<div id="print-area"></div>
+
+<script>
+'use strict';
+/* =========================================================
+   Storage (IndexedDB) — cars, records, files (receipt blobs)
+   ========================================================= */
+const DB_NAME = 'car-maintenance-log', DB_VER = 1;
+let db;
+function openDB(){
+  return new Promise((resolve, reject) => {
+    const r = indexedDB.open(DB_NAME, DB_VER);
+    r.onupgradeneeded = () => {
+      const d = r.result;
+      if (!d.objectStoreNames.contains('cars')) d.createObjectStore('cars', {keyPath:'id'});
+      if (!d.objectStoreNames.contains('records')) d.createObjectStore('records', {keyPath:'id'}).createIndex('carId','carId');
+      if (!d.objectStoreNames.contains('files')) d.createObjectStore('files', {keyPath:'id'}).createIndex('recordId','recordId');
+    };
+    r.onsuccess = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+  });
+}
+const store = (name, mode='readonly') => db.transaction(name, mode).objectStore(name);
+const wrap = r => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+const dbAll = name => wrap(store(name).getAll());
+const dbGet = (name, key) => wrap(store(name).get(key));
+const dbPut = (name, val) => wrap(store(name,'readwrite').put(val));
+const dbDel = (name, key) => wrap(store(name,'readwrite').delete(key));
+
+/* ========================= State ========================= */
+let cars = [], records = [];
+const CATEGORIES = [
+  'Oil Change','Tires','Tire Rotation','Brakes','Battery','Filters','Fluids','Spark Plugs','Belts & Hoses',
+  'Engine','Transmission','Suspension & Steering','Cooling System','Electrical','Exhaust','A/C & Heating',
+  'Wipers & Lights','Body & Paint','Inspection / Registration','Detailing','Other'
+];
+const OIL = 'Oil Change';
+
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $ = (sel, root=document) => root.querySelector(sel);
+const $$ = (sel, root=document) => [...root.querySelectorAll(sel)];
+const num = v => (v === '' || v == null || isNaN(+v)) ? null : +v;
+const fmtMiles = n => n == null ? '—' : Math.round(n).toLocaleString() + ' mi';
+const fmtMoney = n => (n == null ? 0 : n).toLocaleString(undefined, {style:'currency', currency:'USD'});
+const fmtSize = b => b < 1024 ? b + ' B' : b < 1048576 ? (b/1024).toFixed(0) + ' KB' : (b/1048576).toFixed(1) + ' MB';
+
+/* ========================= Dates ========================= */
+const todayStr = () => toDateStr(new Date());
+function toDateStr(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function parseDate(s){ if(!s) return null; const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); }
+function fmtDate(s, opts={year:'numeric',month:'short',day:'numeric'}){ const d = parseDate(s); return d ? d.toLocaleDateString(undefined, opts) : '—'; }
+function addMonths(s, months){
+  const d = parseDate(s); if(!d) return null;
+  const day = d.getDate(); d.setDate(1); d.setMonth(d.getMonth() + months);
+  const last = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
+  d.setDate(Math.min(day, last)); return toDateStr(d);
+}
+function daysUntil(s){ const d = parseDate(s); if(!d) return null; const t = parseDate(todayStr()); return Math.round((d - t) / 86400000); }
+function relDays(n){
+  if (n == null) return '';
+  if (n === 0) return 'today';
+  const a = Math.abs(n);
+  const txt = a < 45 ? `${a} day${a===1?'':'s'}` : a < 730 ? `${Math.round(a/30.4)} months` : `${(a/365).toFixed(1)} years`;
+  return n > 0 ? `in ${txt}` : `${txt} ago`;
+}
+
+/* ===================== Car helpers ====================== */
+function carName(c){ return c.nickname || [c.year, c.make, c.model].filter(Boolean).join(' ') || 'Unnamed car'; }
+function carSub(c){ return c.nickname ? [c.year, c.make, c.model, c.trim].filter(Boolean).join(' ') : (c.trim || ''); }
+function carRecords(carId){ return records.filter(r => r.carId === carId).sort(byDateDesc); }
+function byDateDesc(a, b){ return (b.date||'').localeCompare(a.date||'') || (b.mileage||0) - (a.mileage||0) || (b.createdAt||0) - (a.createdAt||0); }
+function currentMiles(car){
+  const recMax = Math.max(0, ...records.filter(r => r.carId === car.id && r.mileage != null).map(r => r.mileage));
+  return Math.max(car.mileage || 0, recMax) || null;
+}
+function carEmoji(c){ return c.type === 'truck' ? '🛻' : c.type === 'suv' ? '🚙' : c.type === 'moto' ? '🏍️' : c.type === 'van' ? '🚐' : '🚗'; }
+
+/** Status for something due at nextMiles and/or nextDate. */
+function dueStatus({nextMiles, nextDate, lastMiles, lastDate}, curMiles){
+  const milesLeft = (nextMiles != null && curMiles != null) ? nextMiles - curMiles : null;
+  const daysLeft = nextDate ? daysUntil(nextDate) : null;
+  if (milesLeft == null && daysLeft == null) return {status:'none', milesLeft, daysLeft, pct:0};
+  let status = 'ok';
+  if ((milesLeft != null && milesLeft <= 500) || (daysLeft != null && daysLeft <= 14)) status = 'soon';
+  if ((milesLeft != null && milesLeft < 0) || (daysLeft != null && daysLeft < 0)) status = 'overdue';
+  let pct = 0;
+  if (milesLeft != null && lastMiles != null && nextMiles > lastMiles) pct = Math.max(pct, (curMiles - lastMiles) / (nextMiles - lastMiles));
+  if (daysLeft != null && lastDate && nextDate){
+    const span = (parseDate(nextDate) - parseDate(lastDate)) / 86400000;
+    if (span > 0) pct = Math.max(pct, (span - daysLeft) / span);
+  }
+  return {status, milesLeft, daysLeft, pct: Math.min(1, Math.max(0, pct))};
+}
+function statusLabel(s){ return {ok:'Good', soon:'Due soon', overdue:'Overdue', none:'No reminder'}[s.status]; }
+
+function oilInfo(car){
+  const last = carRecords(car.id).find(r => r.category === OIL);
+  if (!last) return null;
+  const nextMiles = last.nextMiles ?? (last.mileage != null && car.oilMiles ? last.mileage + car.oilMiles : null);
+  const nextDate = last.nextDate || (car.oilMonths ? addMonths(last.date, car.oilMonths) : null);
+  const info = {last, nextMiles, nextDate, lastMiles:last.mileage, lastDate:last.date};
+  info.st = dueStatus(info, currentMiles(car));
+  return info;
+}
+/** Latest record per service type that has a "next due" set (excluding oil — shown separately). */
+function upcoming(car){
+  const seen = new Set(), out = [];
+  const cur = currentMiles(car);
+  for (const r of carRecords(car.id)){
+    if (r.category === OIL) continue;
+    const key = r.category === 'Other' ? 'o:' + (r.title||'').toLowerCase() : r.category;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    if (r.nextMiles == null && !r.nextDate) continue;
+    const st = dueStatus({nextMiles:r.nextMiles, nextDate:r.nextDate, lastMiles:r.mileage, lastDate:r.date}, cur);
+    out.push({r, st});
+  }
+  const rank = {overdue:0, soon:1, ok:2, none:3};
+  return out.sort((a,b) => rank[a.st.status] - rank[b.st.status] || (a.st.daysLeft ?? 1e9) - (b.st.daysLeft ?? 1e9));
+}
+
+/* ======================= Modals ======================== */
+const objectUrls = new Map(); // modal element -> [urls]
+function openModal({title, body, foot='', wide=false, onClose}){
+  const ov = document.createElement('div');
+  ov.className = 'overlay';
+  ov.innerHTML = `<div class="modal ${wide?'wide':''}" role="dialog" aria-modal="true">
+    <div class="modal-head"><h2>${title}</h2><button class="icon-btn" data-close aria-label="Close">✕</button></div>
+    <div class="modal-body">${body}</div>${foot ? `<div class="modal-foot">${foot}</div>` : ''}</div>`;
+  ov._onClose = onClose;
+  ov.addEventListener('mousedown', e => { if (e.target === ov) ov._downOnOverlay = true; });
+  ov.addEventListener('click', e => {
+    if ((e.target === ov && ov._downOnOverlay) || e.target.closest('[data-close]')) closeModal(ov);
+    ov._downOnOverlay = false;
+  });
+  document.body.appendChild(ov);
+  document.body.style.overflow = 'hidden';
+  const first = ov.querySelector('input:not([type=file]),select,textarea');
+  if (first && matchMedia('(hover:hover)').matches) setTimeout(() => first.focus(), 30);
+  return ov;
+}
+function closeModal(ov){
+  ov = ov || $$('.overlay').pop();
+  if (!ov) return;
+  (objectUrls.get(ov) || []).forEach(u => URL.revokeObjectURL(u));
+  objectUrls.delete(ov);
+  ov.remove();
+  if (!$('.overlay')) document.body.style.overflow = '';
+  ov._onClose && ov._onClose();
+}
+function trackUrl(ov, blob){ const u = URL.createObjectURL(blob); if(!objectUrls.has(ov)) objectUrls.set(ov, []); objectUrls.get(ov).push(u); return u; }
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('.overlay')) closeModal(); });
+
+function toast(msg){
+  $('.toast')?.remove();
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 2600);
+}
+function confirmBox(message, okLabel='Delete'){
+  return new Promise(resolve => {
+    let done = false;
+    const ov = openModal({title:'Are you sure?', body:`<p style="margin:0">${message}</p>`,
+      foot:`<button class="btn" data-close>Cancel</button><button class="btn primary" style="background:var(--bad);border-color:var(--bad);color:#fff" data-ok>${okLabel}</button>`,
+      onClose:() => { if(!done) resolve(false); }});
+    $('[data-ok]', ov).onclick = () => { done = true; closeModal(ov); resolve(true); };
+  });
+}
+
+/* ===================== Image utils ====================== */
+function resizeImage(file, max=1000, quality=.85){
+  return new Promise((resolve) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const s = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      c.toBlob(b => resolve(b || file), 'image/jpeg', quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  });
+}
+const isImage = t => /^image\//.test(t || '');
+const isPdf = (t, n) => t === 'application/pdf' || /\.pdf$/i.test(n || '');
+
+/* ======================== Router ======================== */
+const pageUrls = [];
+function render(){
+  pageUrls.splice(0).forEach(u => URL.revokeObjectURL(u));
+  const m = location.hash.match(/^#\/car\/([^/]+)/);
+  if (m){
+    const car = cars.find(c => c.id === m[1]);
+    if (car) return renderCar(car);
+    location.hash = '#/';
+    return;
+  }
+  renderGarage();
+}
+window.addEventListener('hashchange', () => { render(); window.scrollTo(0,0); });
+function photoHtml(car){
+  if (car.photo){ const u = URL.createObjectURL(car.photo); pageUrls.push(u); return `<img src="${u}" alt="">`; }
+  return carEmoji(car);
+}
+function pill(st, extra=''){ return `<span class="pill ${st.status}">${st.status==='overdue'?'⚠️ ':st.status==='soon'?'⏰ ':st.status==='ok'?'✓ ':''}${extra || statusLabel(st)}</span>`; }
+
+/* ======================== Garage ======================== */
+function renderGarage(){
+  const app = $('#app');
+  if (!cars.length){
+    app.innerHTML = `<div class="card empty" style="margin-top:28px">
+      <div class="big">🚗</div><h1 style="margin-top:8px">Welcome to your garage</h1>
+      <p class="muted" style="max-width:440px;margin:8px auto 20px">Add your first car to start logging repairs, oil changes and receipts. Everything is dated so you'll always know when work was done.</p>
+      <button class="btn primary" data-add-car>+ Add your first car</button>
+      <p class="small muted" style="margin-top:18px">Have a backup? <a href="#" data-import>Import it here</a>.</p></div>`;
+    return;
+  }
+  const sorted = [...cars].sort((a,b) => (a.createdAt||0) - (b.createdAt||0));
+  const total = records.reduce((s,r) => s + (r.cost||0), 0);
+  const alerts = sorted.map(c => ({c, oil:oilInfo(c), up:upcoming(c)}));
+  const needs = alerts.filter(a => a.oil?.st.status === 'overdue' || a.oil?.st.status === 'soon' || a.up.some(u => u.st.status !== 'ok'));
+  app.innerHTML = `
+    <div class="page-head"><div class="titles"><h1>My Garage</h1>
+      <div class="muted">${cars.length} vehicle${cars.length===1?'':'s'} · ${records.length} service record${records.length===1?'':'s'} · ${fmtMoney(total)} total spent</div></div></div>
+    ${needs.length ? `<div class="card pad" style="margin-bottom:16px;border-left:4px solid var(--warn)">
+      <h3>Needs attention</h3>
+      ${needs.map(({c, oil, up}) => {
+        const items = [];
+        if (oil && (oil.st.status !== 'ok')) items.push(`Oil change ${pill(oil.st)}`);
+        up.filter(u => u.st.status !== 'ok').forEach(u => items.push(`${esc(u.r.category === 'Other' ? u.r.title : u.r.category)} ${pill(u.st)}`));
+        return `<div class="small" style="margin:4px 0"><a href="#/car/${c.id}"><b>${esc(carName(c))}</b></a> — ${items.join(' · ')}</div>`;
+      }).join('')}</div>` : ''}
+    <div class="grid cars-grid">
+      ${alerts.map(({c, oil}) => {
+        const recs = carRecords(c.id);
+        const spent = recs.reduce((s,r) => s + (r.cost||0), 0);
+        return `<a class="card car-card" href="#/car/${c.id}">
+          <div class="car-photo">${photoHtml(c)}</div>
+          <div class="body">
+            <div><div class="car-name">${esc(carName(c))}</div><div class="small muted">${esc(carSub(c)) || '&nbsp;'}</div></div>
+            <div class="kv"><span>Odometer</span><span>${fmtMiles(currentMiles(c))}</span></div>
+            <div class="kv"><span>Last service</span><span>${recs[0] ? fmtDate(recs[0].date) : '—'}</span></div>
+            <div class="kv"><span>Records · Spent</span><span>${recs.length} · ${fmtMoney(spent)}</span></div>
+            <div class="kv" style="align-items:center"><span>Oil change</span>${oil ? pill(oil.st, oilShort(oil)) : '<span class="pill none">Not logged yet</span>'}</div>
+          </div></a>`;
+      }).join('')}
+    </div><div style="height:30px"></div>`;
+}
+function oilShort(oil){
+  const parts = [];
+  if (oil.st.milesLeft != null) parts.push(oil.st.milesLeft >= 0 ? `${oil.st.milesLeft.toLocaleString()} mi left` : `${(-oil.st.milesLeft).toLocaleString()} mi over`);
+  if (oil.st.daysLeft != null) parts.push(oil.st.daysLeft >= 0 ? `due ${relDays(oil.st.daysLeft)}` : `due ${relDays(oil.st.daysLeft)}`);
+  return parts.join(' · ') || statusLabel(oil.st);
+}
+
+/* ====================== Car page ======================= */
+const filters = {q:'', cat:'', year:'', sort:'new'};
+function renderCar(car){
+  const app = $('#app');
+  const recs = carRecords(car.id);
+  const oil = oilInfo(car);
+  const up = upcoming(car);
+  const cur = currentMiles(car);
+  const spent = recs.reduce((s,r) => s + (r.cost||0), 0);
+  const thisYear = String(new Date().getFullYear());
+  const spentYear = recs.filter(r => r.date?.startsWith(thisYear)).reduce((s,r) => s + (r.cost||0), 0);
+  const years = [...new Set(recs.map(r => r.date?.slice(0,4)).filter(Boolean))].sort().reverse();
+  const cats = [...new Set(recs.map(r => r.category))].sort();
+  const chips = [
+    car.vin && `<span class="chip">VIN <b>${esc(car.vin)}</b></span>`,
+    car.plate && `<span class="chip">Plate <b>${esc(car.plate)}</b></span>`,
+    car.color && `<span class="chip">${esc(car.color)}</span>`,
+    car.engine && `<span class="chip">${esc(car.engine)}</span>`,
+    car.oilType && `<span class="chip">Oil <b>${esc(car.oilType)}</b>${car.oilQty ? ' · ' + esc(car.oilQty) : ''}</span>`,
+    car.oilFilter && `<span class="chip">Filter <b>${esc(car.oilFilter)}</b></span>`,
+    car.purchaseDate && `<span class="chip">Owned since ${fmtDate(car.purchaseDate)}</span>`,
+  ].filter(Boolean).join('');
+
+  app.innerHTML = `
+    <a class="back" href="#/">← Garage</a>
+    <div class="card pad" style="margin:12px 0 16px">
+      <div class="car-hero">
+        <div class="car-photo">${photoHtml(car)}</div>
+        <div>
+          <div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap">
+            <div style="flex:1;min-width:200px"><h1 style="margin:0">${esc(carName(car))}</h1>
+              <div class="muted">${esc(carSub(car))}</div></div>
+            <button class="btn sm" data-edit-car>Edit car</button>
+          </div>
+          <div style="margin:12px 0;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+            <span style="font-size:26px;font-weight:800">${fmtMiles(cur)}</span>
+            <button class="btn sm" data-update-miles>Update odometer</button>
+          </div>
+          ${chips ? `<div class="chips">${chips}</div>` : ''}
+          ${car.notes ? `<p class="small muted pre" style="margin:10px 0 0">${esc(car.notes)}</p>` : ''}
+        </div>
+      </div>
+    </div>
+    <div class="layout">
+      <aside class="side">
+        ${oilCardHtml(car, oil, cur)}
+        <div class="card pad">
+          <h3>Spending</h3>
+          <div class="stats">
+            <div class="stat"><div class="val">${fmtMoney(spent)}</div><div class="lbl">All time</div></div>
+            <div class="stat"><div class="val">${fmtMoney(spentYear)}</div><div class="lbl">${thisYear}</div></div>
+            <div class="stat"><div class="val">${recs.length}</div><div class="lbl">Records</div></div>
+          </div>
+        </div>
+        <div class="card pad">
+          <h3>Upcoming maintenance</h3>
+          ${up.length ? up.map(({r, st}) => `
+            <div class="upcoming-item" data-open-rec="${r.id}" style="cursor:pointer">
+              <div class="t"><div style="font-weight:600">${esc(r.category === 'Other' ? r.title : r.category)}</div>
+                <div class="small muted">${[r.nextMiles != null && 'at ' + fmtMiles(r.nextMiles), r.nextDate && 'by ' + fmtDate(r.nextDate)].filter(Boolean).join(' or ')}</div></div>
+              ${pill(st)}
+            </div>`).join('') : `<p class="small muted" style="margin:0">When you log a repair, fill in <b>“Next due”</b> (e.g. tire rotation in 6,000 mi) and it'll show up here.</p>`}
+        </div>
+      </aside>
+      <section class="card" style="overflow:hidden">
+        <div style="display:flex;align-items:center;gap:8px;padding:14px 16px 0;flex-wrap:wrap">
+          <h2 style="margin:0;flex:1">Service history</h2>
+          <button class="btn sm hide-sm" data-export-csv>Export CSV</button>
+          <button class="btn primary sm" data-add-rec>+ Log service</button>
+        </div>
+        <div class="toolbar">
+          <input type="search" id="f-q" placeholder="Search repairs, parts, shop…" value="${esc(filters.q)}">
+          <select id="f-cat"><option value="">All types</option>${cats.map(c => `<option ${filters.cat===c?'selected':''}>${esc(c)}</option>`).join('')}</select>
+          <select id="f-year"><option value="">All years</option>${years.map(y => `<option ${filters.year===y?'selected':''}>${y}</option>`).join('')}</select>
+          <select id="f-sort"><option value="new" ${filters.sort==='new'?'selected':''}>Newest first</option><option value="old" ${filters.sort==='old'?'selected':''}>Oldest first</option></select>
+        </div>
+        <div id="rec-list"></div>
+      </section>
+    </div>`;
+  renderRecordList(car);
+
+  $('[data-edit-car]').onclick = () => carForm(car);
+  $('[data-update-miles]').onclick = () => mileageForm(car);
+  $('[data-add-rec]').onclick = () => recordForm(car);
+  $('[data-export-csv]').onclick = () => exportCsv(car);
+  $$('[data-log-oil]').forEach(b => b.onclick = () => recordForm(car, null, OIL));
+  $$('[data-open-rec]').forEach(el => el.onclick = () => recordDetail(records.find(r => r.id === el.dataset.openRec)));
+  $$('[data-oil-reminder]').forEach(b => b.onclick = () => nextOilModal(car, oilInfo(car)));
+  $('#f-q').oninput = e => { filters.q = e.target.value; renderRecordList(car); };
+  $('#f-cat').onchange = e => { filters.cat = e.target.value; renderRecordList(car); };
+  $('#f-year').onchange = e => { filters.year = e.target.value; renderRecordList(car); };
+  $('#f-sort').onchange = e => { filters.sort = e.target.value; renderRecordList(car); };
+}
+
+function oilCardHtml(car, oil, cur){
+  if (!oil) return `<div class="card pad oil-card">
+      <div class="oil-head"><h3 style="margin:0">🛢️ Oil change</h3><span class="pill none">Not logged</span></div>
+      <p class="small muted" style="margin:0 0 12px">Log your last oil change and the next one will be calculated automatically (every ${car.oilMiles ? car.oilMiles.toLocaleString() + ' mi' : '—'}${car.oilMonths ? ' or ' + car.oilMonths + ' months' : ''}).</p>
+      <button class="btn primary" style="width:100%" data-log-oil>Log oil change</button></div>`;
+  const st = oil.st;
+  const milesTxt = st.milesLeft == null ? '' : st.milesLeft >= 0 ? `${st.milesLeft.toLocaleString()} mi to go` : `${(-st.milesLeft).toLocaleString()} mi overdue`;
+  const daysTxt = st.daysLeft == null ? '' : relDays(st.daysLeft);
+  return `<div class="card pad oil-card ${st.status}">
+    <div class="oil-head"><h3 style="margin:0">🛢️ Next oil change</h3>${pill(st)}</div>
+    <div class="bar ${st.status}"><i style="width:${Math.round(st.pct*100)}%"></i></div>
+    <div class="due-grid">
+      <div class="due-box"><div class="lbl">Due at</div><div class="val">${fmtMiles(oil.nextMiles)}</div><div class="sub muted">${milesTxt}</div></div>
+      <div class="due-box"><div class="lbl">Due by</div><div class="val">${oil.nextDate ? fmtDate(oil.nextDate) : '—'}</div><div class="sub muted">${daysTxt}</div></div>
+    </div>
+    <div class="small muted" style="margin-bottom:12px">Last done <a href="#" data-open-rec="${oil.last.id}">${fmtDate(oil.last.date)}</a>${oil.last.mileage != null ? ' at ' + fmtMiles(oil.last.mileage) : ''}${oil.last.oilType ? ' · ' + esc(oil.last.oilType) : ''}. Whichever comes first.</div>
+    <div style="display:flex;gap:8px"><button class="btn primary" style="flex:1" data-log-oil>Log oil change</button><button class="btn" data-oil-reminder title="Calendar reminder / sticker">📅 Reminder</button></div>
+  </div>`;
+}
+
+function renderRecordList(car){
+  const list = $('#rec-list'); if (!list) return;
+  const q = filters.q.trim().toLowerCase();
+  let recs = carRecords(car.id).filter(r =>
+    (!filters.cat || r.category === filters.cat) &&
+    (!filters.year || r.date?.startsWith(filters.year)) &&
+    (!q || [r.title, r.category, r.notes, r.parts, r.shop, r.oilType, r.oilFilter, r.date, r.mileage].join(' ').toLowerCase().includes(q)));
+  if (filters.sort === 'old') recs.reverse();
+  if (!recs.length){
+    const any = carRecords(car.id).length;
+    list.innerHTML = `<div class="empty"><div class="big">${any ? '🔍' : '🧰'}</div>
+      <p class="muted">${any ? 'No records match your filters.' : 'No service records yet. Log your first repair or oil change!'}</p>
+      ${any ? '' : '<button class="btn primary" id="empty-add">+ Log service</button>'}</div>`;
+    $('#empty-add') && ($('#empty-add').onclick = () => recordForm(car));
+    return;
+  }
+  let html = '', curYear = null;
+  const yearTotals = {};
+  recs.forEach(r => { const y = r.date?.slice(0,4) || '—'; yearTotals[y] = (yearTotals[y]||0) + (r.cost||0); });
+  for (const r of recs){
+    const y = r.date?.slice(0,4) || '—';
+    if (y !== curYear){ curYear = y; html += `<div class="year-head"><span>${y}</span><span>${fmtMoney(yearTotals[y])}</span></div>`; }
+    const d = parseDate(r.date);
+    const files = r.files || [];
+    html += `<div class="rec" data-rec="${r.id}">
+      <div class="rec-date"><div class="m">${d ? d.toLocaleDateString(undefined,{month:'short'}) : '—'}</div><div class="d">${d ? d.getDate() : ''}</div></div>
+      <div style="min-width:0">
+        <div class="rec-title"><span class="cat ${r.category===OIL?'oil':''}">${esc(r.category)}</span>${esc(r.title || r.category)}</div>
+        <div class="rec-meta">
+          <span>📅 ${fmtDate(r.date)}</span>
+          ${r.mileage != null ? `<span>🛣️ ${fmtMiles(r.mileage)}</span>` : ''}
+          ${r.shop ? `<span>🏪 ${esc(r.shop)}</span>` : ''}
+          ${(r.nextMiles != null || r.nextDate) ? `<span>⏭️ Next: ${[r.nextMiles != null && fmtMiles(r.nextMiles), r.nextDate && fmtDate(r.nextDate)].filter(Boolean).join(' / ')}</span>` : ''}
+        </div>
+        ${r.notes ? `<div class="small muted" style="margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.notes)}</div>` : ''}
+        ${files.length ? `<div class="thumbs">${files.map(f => `<div class="thumb" data-file="${f.id}" title="${esc(f.name)}">${isPdf(f.type,f.name) ? 'PDF' : '🧾'}</div>`).join('')}</div>` : ''}
+      </div>
+      <div class="rec-cost">${r.cost ? fmtMoney(r.cost) : '<span class="muted small">—</span>'}</div>
+    </div>`;
+  }
+  list.innerHTML = html;
+  $$('.rec', list).forEach(el => el.onclick = e => {
+    const th = e.target.closest('[data-file]');
+    const rec = records.find(r => r.id === el.dataset.rec);
+    if (th) { e.stopPropagation(); return viewFile(th.dataset.file, rec); }
+    recordDetail(rec);
+  });
+  loadThumbs(list);
+}
+async function loadThumbs(root){
+  for (const el of $$('[data-file]', root)){
+    if (el.textContent === 'PDF') continue;
+    const f = await dbGet('files', el.dataset.file);
+    if (f && isImage(f.type) && document.body.contains(el)){
+      const u = URL.createObjectURL(f.blob); pageUrls.push(u);
+      el.innerHTML = `<img src="${u}" alt="">`;
+    }
+  }
+}
+
+/* ===================== Car form ====================== */
+function carForm(car){
+  const isNew = !car;
+  car = car || {oilMiles:5000, oilMonths:6, type:'car'};
+  let photo = car.photo || null, photoRemoved = false;
+  const ov = openModal({
+    title: isNew ? 'Add a car' : 'Edit car',
+    body: `<form id="car-f" class="form-grid">
+      <label class="f"><span>Year</span><input type="number" name="year" min="1900" max="2100" value="${esc(car.year)}" placeholder="2018"></label>
+      <label class="f"><span>Make *</span><input type="text" name="make" value="${esc(car.make)}" placeholder="Toyota" required></label>
+      <label class="f"><span>Model *</span><input type="text" name="model" value="${esc(car.model)}" placeholder="Camry" required></label>
+      <label class="f"><span>Trim</span><input type="text" name="trim" value="${esc(car.trim)}" placeholder="SE"></label>
+      <label class="f"><span>Nickname</span><input type="text" name="nickname" value="${esc(car.nickname)}" placeholder="Optional, e.g. “Daily driver”"></label>
+      <label class="f"><span>Type</span><select name="type">${[['car','🚗 Car'],['suv','🚙 SUV'],['truck','🛻 Truck'],['van','🚐 Van'],['moto','🏍️ Motorcycle']].map(([v,l]) => `<option value="${v}" ${car.type===v?'selected':''}>${l}</option>`).join('')}</select></label>
+      <label class="f"><span>Current odometer (mi)</span><input type="number" name="mileage" min="0" value="${esc(car.mileage)}" placeholder="84,500"></label>
+      <label class="f"><span>Date purchased</span><input type="date" name="purchaseDate" value="${esc(car.purchaseDate)}"></label>
+      <label class="f"><span>VIN</span><input type="text" name="vin" value="${esc(car.vin)}" maxlength="17" style="text-transform:uppercase"></label>
+      <label class="f"><span>License plate</span><input type="text" name="plate" value="${esc(car.plate)}" style="text-transform:uppercase"></label>
+      <label class="f"><span>Color</span><input type="text" name="color" value="${esc(car.color)}"></label>
+      <label class="f"><span>Engine</span><input type="text" name="engine" value="${esc(car.engine)}" placeholder="2.5L 4-cyl"></label>
+      <fieldset class="full"><legend>🛢️ Oil change schedule</legend>
+        <div class="form-grid">
+          <label class="f"><span>Change every (miles)</span><input type="number" name="oilMiles" min="0" step="500" value="${esc(car.oilMiles)}"></label>
+          <label class="f"><span>…or every (months)</span><input type="number" name="oilMonths" min="0" value="${esc(car.oilMonths)}"></label>
+          <label class="f"><span>Oil type</span><input type="text" name="oilType" value="${esc(car.oilType)}" placeholder="0W-20 Full Synthetic"></label>
+          <label class="f"><span>Oil capacity</span><input type="text" name="oilQty" value="${esc(car.oilQty)}" placeholder="4.8 qt"></label>
+          <label class="f full"><span>Oil filter part #</span><input type="text" name="oilFilter" value="${esc(car.oilFilter)}" placeholder="e.g. 04152-YZZA1"></label>
+        </div>
+        <div class="hint" style="margin-top:8px">These become the defaults whenever you log an oil change.</div>
+      </fieldset>
+      <label class="f full"><span>Photo</span>
+        <div style="display:flex;gap:10px;align-items:center">
+          <div class="thumb lg" id="car-photo-prev" style="font-size:36px">${carEmoji(car)}</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <input type="file" accept="image/*" id="car-photo-in" hidden>
+            <button type="button" class="btn sm" id="car-photo-btn">Choose photo</button>
+            <button type="button" class="btn sm ghost danger" id="car-photo-rm" ${photo?'':'hidden'}>Remove photo</button>
+          </div>
+        </div></label>
+      <label class="f full"><span>Notes</span><textarea name="notes" placeholder="Tire size, paint code, warranty info…">${esc(car.notes)}</textarea></label>
+    </form>`,
+    foot: `${isNew ? '' : '<button class="btn danger left" data-del>Delete car</button>'}<button class="btn" data-close>Cancel</button><button class="btn primary" data-save>${isNew ? 'Add car' : 'Save'}</button>`
+  });
+  const prev = $('#car-photo-prev', ov);
+  const showPhoto = () => { prev.innerHTML = photo ? `<img src="${trackUrl(ov, photo)}" alt="">` : carEmoji(car); $('#car-photo-rm', ov).hidden = !photo; };
+  showPhoto();
+  $('#car-photo-btn', ov).onclick = () => $('#car-photo-in', ov).click();
+  $('#car-photo-in', ov).onchange = async e => { const f = e.target.files[0]; if (f){ photo = await resizeImage(f, 1200); photoRemoved = false; showPhoto(); } };
+  $('#car-photo-rm', ov).onclick = () => { photo = null; photoRemoved = true; showPhoto(); };
+  const form = $('#car-f', ov);
+  form.onsubmit = e => { e.preventDefault(); $('[data-save]', ov).click(); };
+  $('[data-save]', ov).onclick = async () => {
+    if (!form.reportValidity()) return;
+    const fd = Object.fromEntries(new FormData(form));
+    const updated = {
+      ...car, id: car.id || uid(), createdAt: car.createdAt || Date.now(),
+      year: num(fd.year), make: fd.make.trim(), model: fd.model.trim(), trim: fd.trim.trim(), nickname: fd.nickname.trim(),
+      type: fd.type, mileage: num(fd.mileage), purchaseDate: fd.purchaseDate, vin: fd.vin.trim().toUpperCase(), plate: fd.plate.trim().toUpperCase(),
+      color: fd.color.trim(), engine: fd.engine.trim(), oilMiles: num(fd.oilMiles), oilMonths: num(fd.oilMonths),
+      oilType: fd.oilType.trim(), oilQty: fd.oilQty.trim(), oilFilter: fd.oilFilter.trim(), notes: fd.notes.trim(),
+      photo: photoRemoved ? null : photo
+    };
+    await dbPut('cars', updated);
+    const i = cars.findIndex(c => c.id === updated.id);
+    i >= 0 ? cars[i] = updated : cars.push(updated);
+    closeModal(ov);
+    toast(isNew ? 'Car added' : 'Car saved');
+    if (isNew) location.hash = '#/car/' + updated.id; else render();
+  };
+  $('[data-del]', ov) && ($('[data-del]', ov).onclick = async () => {
+    const n = carRecords(car.id).length;
+    if (!await confirmBox(`Delete <b>${esc(carName(car))}</b>${n ? ` and its ${n} service record${n===1?'':'s'} and receipts` : ''}? This can't be undone.`)) return;
+    for (const r of carRecords(car.id)) await deleteRecordData(r);
+    await dbDel('cars', car.id);
+    cars = cars.filter(c => c.id !== car.id);
+    closeModal(ov); toast('Car deleted'); location.hash = '#/';
+  });
+}
+
+function mileageForm(car){
+  const ov = openModal({title:'Update odometer',
+    body:`<label class="f"><span>Current mileage for ${esc(carName(car))}</span><input type="number" id="mi" min="0" value="${currentMiles(car) ?? ''}"></label>`,
+    foot:`<button class="btn" data-close>Cancel</button><button class="btn primary" data-save>Save</button>`});
+  const save = async () => {
+    const v = num($('#mi', ov).value); if (v == null) return;
+    car.mileage = v; car.mileageDate = todayStr();
+    await dbPut('cars', car); closeModal(ov); toast('Odometer updated'); render();
+  };
+  $('[data-save]', ov).onclick = save;
+  $('#mi', ov).onkeydown = e => { if (e.key === 'Enter') save(); };
+}
+
+/* ==================== Record form ===================== */
+function recordForm(car, rec, presetCat){
+  const isNew = !rec;
+  const lastOil = carRecords(car.id).find(r => r.category === OIL);
+  rec = rec || {date: todayStr(), category: presetCat || '', mileage: currentMiles(car), title:''};
+  if (isNew && rec.category === OIL){
+    rec.title = 'Oil & filter change';
+    rec.oilType = car.oilType || lastOil?.oilType || '';
+    rec.oilQty = car.oilQty || lastOil?.oilQty || '';
+    rec.oilFilter = car.oilFilter || lastOil?.oilFilter || '';
+    rec.shop = lastOil?.shop || '';
+  }
+  const existingFiles = [...(rec.files || [])];
+  const removedFiles = [];
+  const newFiles = [];
+  let nextTouched = !isNew && (rec.nextMiles != null || !!rec.nextDate);
+
+  const ov = openModal({
+    title: isNew ? (rec.category === OIL ? '🛢️ Log oil change' : 'Log service') : 'Edit record',
+    body: `<form id="rec-f" class="form-grid">
+      <label class="f"><span>Date done *</span><input type="date" name="date" value="${esc(rec.date)}" required max="2100-12-31"></label>
+      <label class="f"><span>Odometer (mi)</span><input type="number" name="mileage" min="0" value="${esc(rec.mileage)}"></label>
+      <label class="f"><span>Type of work *</span><select name="category" required><option value="">Choose…</option>${CATEGORIES.map(c => `<option ${rec.category===c?'selected':''}>${c}</option>`).join('')}</select></label>
+      <label class="f"><span>Title</span><input type="text" name="title" value="${esc(rec.title)}" placeholder="e.g. Front brake pads & rotors"></label>
+      <label class="f"><span>Done by (shop or DIY)</span><input type="text" name="shop" value="${esc(rec.shop)}" placeholder="DIY, Jiffy Lube, dealer…" list="shops"></label>
+      <label class="f"><span>Total cost ($)</span><input type="number" name="cost" min="0" step="0.01" value="${esc(rec.cost)}" placeholder="0.00"></label>
+      <fieldset class="full" id="oil-fs" ${rec.category===OIL?'':'hidden'}><legend>🛢️ Oil details</legend>
+        <div class="form-grid">
+          <label class="f"><span>Oil used</span><input type="text" name="oilType" value="${esc(rec.oilType)}" placeholder="Mobil 1 5W-30 Full Synthetic"></label>
+          <label class="f"><span>Amount</span><input type="text" name="oilQty" value="${esc(rec.oilQty)}" placeholder="5 qt"></label>
+          <label class="f full"><span>Oil filter</span><input type="text" name="oilFilter" value="${esc(rec.oilFilter)}" placeholder="Brand / part #"></label>
+        </div>
+      </fieldset>
+      <label class="f full"><span>Parts used</span><textarea name="parts" placeholder="One per line — brand, part #, qty">${esc(rec.parts)}</textarea></label>
+      <label class="f full"><span>Notes</span><textarea name="notes" placeholder="What was done, what you noticed, torque specs…">${esc(rec.notes)}</textarea></label>
+      <fieldset class="full"><legend>⏭️ Next due <span class="hint">(optional — whichever comes first)</span></legend>
+        <div class="form-grid">
+          <label class="f"><span>At mileage</span><input type="number" name="nextMiles" min="0" value="${esc(rec.nextMiles)}"></label>
+          <label class="f"><span>By date</span><input type="date" name="nextDate" value="${esc(rec.nextDate)}"></label>
+        </div>
+        <div class="hint" id="next-hint" style="margin-top:8px"></div>
+      </fieldset>
+      <div class="full">
+        <div class="f" style="margin-bottom:6px;font-size:13px;font-weight:600;color:var(--muted)">Receipts & photos</div>
+        <div class="dropzone" id="dz">📎 <b>Add receipts</b> — photos or PDFs<br><span class="small">Tap to choose, or drag files here</span></div>
+        <input type="file" id="file-in" accept="image/*,application/pdf,.pdf" multiple hidden>
+        <div class="file-list" id="file-list"></div>
+      </div>
+      <datalist id="shops">${[...new Set(records.map(r => r.shop).filter(Boolean))].map(s => `<option value="${esc(s)}">`).join('')}</datalist>
+    </form>`,
+    foot: `${isNew ? '' : '<button class="btn danger left" data-del>Delete</button>'}<button class="btn" data-close>Cancel</button><button class="btn primary" data-save>${isNew ? 'Save record' : 'Save changes'}</button>`
+  });
+  const form = $('#rec-f', ov);
+  const f = n => form.elements[n];
+
+  // Auto-calculate next oil change from the car's schedule
+  function autoNext(){
+    const isOil = f('category').value === OIL;
+    $('#oil-fs', ov).hidden = !isOil;
+    const hint = $('#next-hint', ov);
+    if (!isOil){ hint.textContent = 'Set a reminder for when this should be done again (e.g. rotate tires every 6,000 mi).'; return; }
+    const parts = [];
+    if (car.oilMiles) parts.push(car.oilMiles.toLocaleString() + ' miles');
+    if (car.oilMonths) parts.push(car.oilMonths + ' months');
+    hint.innerHTML = parts.length ? `Auto-calculated from your schedule: every ${parts.join(' or ')}. <a href="#" id="recalc">Recalculate</a>` : 'Tip: set an oil change schedule on the car to auto-fill this.';
+    $('#recalc', ov) && ($('#recalc', ov).onclick = e => { e.preventDefault(); nextTouched = false; autoNext(); });
+    if (nextTouched) return;
+    const mi = num(f('mileage').value);
+    f('nextMiles').value = (mi != null && car.oilMiles) ? mi + car.oilMiles : '';
+    f('nextDate').value = (f('date').value && car.oilMonths) ? addMonths(f('date').value, car.oilMonths) : '';
+  }
+  f('category').onchange = () => {
+    const t = f('title');
+    if (!t.value || CATEGORIES.includes(t.value) || t.value === 'Oil & filter change') t.value = f('category').value === OIL ? 'Oil & filter change' : '';
+    if (f('category').value === OIL){
+      if (!f('oilType').value) f('oilType').value = car.oilType || lastOil?.oilType || '';
+      if (!f('oilQty').value) f('oilQty').value = car.oilQty || lastOil?.oilQty || '';
+      if (!f('oilFilter').value) f('oilFilter').value = car.oilFilter || lastOil?.oilFilter || '';
+    }
+    autoNext();
+  };
+  f('mileage').oninput = autoNext;
+  f('date').onchange = autoNext;
+  f('nextMiles').oninput = () => nextTouched = true;
+  f('nextDate').onchange = () => nextTouched = true;
+  autoNext();
+
+  // Receipts
+  const fileList = $('#file-list', ov);
+  function drawFiles(){
+    const items = [
+      ...existingFiles.map(x => ({...x, kind:'old'})),
+      ...newFiles.map((x, i) => ({id:'new'+i, name:x.name, type:x.type, size:x.size, blob:x, kind:'new', idx:i}))
+    ];
+    fileList.innerHTML = items.map(x => `<div class="file-item"><div class="thumb lg" data-k="${x.kind}" data-id="${x.id}">${isPdf(x.type,x.name) ? '📄 PDF' : '🖼️'}<small>${esc(x.name)}</small></div><button type="button" class="x" data-rm="${x.kind}:${x.kind==='new'?x.idx:x.id}" aria-label="Remove">✕</button></div>`).join('');
+    items.forEach(async x => {
+      const el = $(`[data-id="${CSS.escape(x.id)}"]`, fileList);
+      if (!isImage(x.type)) return;
+      const blob = x.kind === 'new' ? x.blob : (await dbGet('files', x.id))?.blob;
+      if (blob && el) el.innerHTML = `<img src="${trackUrl(ov, blob)}" alt="">`;
+    });
+    $$('[data-k="old"]', fileList).forEach(el => el.onclick = () => viewFile(el.dataset.id, rec));
+    $$('[data-k="new"]', fileList).forEach(el => el.onclick = () => viewBlob(newFiles[+el.dataset.id.slice(3)]));
+    $$('[data-rm]', fileList).forEach(b => b.onclick = () => {
+      const [k, v] = b.dataset.rm.split(':');
+      if (k === 'new') newFiles.splice(+v, 1);
+      else { const i = existingFiles.findIndex(x => x.id === v); removedFiles.push(existingFiles[i]); existingFiles.splice(i, 1); }
+      drawFiles();
+    });
+  }
+  drawFiles();
+  const addFiles = list => {
+    for (const file of list){
+      if (!isImage(file.type) && !isPdf(file.type, file.name)){ toast(`Skipped ${file.name} — only images and PDFs`); continue; }
+      newFiles.push(file);
+    }
+    drawFiles();
+  };
+  const dz = $('#dz', ov), fin = $('#file-in', ov);
+  dz.onclick = () => fin.click();
+  fin.onchange = () => { addFiles(fin.files); fin.value = ''; };
+  dz.ondragover = e => { e.preventDefault(); dz.classList.add('over'); };
+  dz.ondragleave = () => dz.classList.remove('over');
+  dz.ondrop = e => { e.preventDefault(); dz.classList.remove('over'); addFiles(e.dataTransfer.files); };
+
+  form.onsubmit = e => { e.preventDefault(); $('[data-save]', ov).click(); };
+  $('[data-save]', ov).onclick = async () => {
+    if (!form.reportValidity()) return;
+    const btn = $('[data-save]', ov); btn.disabled = true; btn.textContent = 'Saving…';
+    try {
+      const fd = Object.fromEntries(new FormData(form));
+      const id = rec.id || uid();
+      for (const x of removedFiles) await dbDel('files', x.id);
+      const saved = [...existingFiles];
+      for (const file of newFiles){
+        const fid = uid();
+        // store as Blob (copy so it survives the File handle)
+        const blob = new Blob([await file.arrayBuffer()], {type: file.type || (isPdf('', file.name) ? 'application/pdf' : '')});
+        await dbPut('files', {id:fid, recordId:id, name:file.name, type:blob.type, size:blob.size, blob, addedAt:Date.now()});
+        saved.push({id:fid, name:file.name, type:blob.type, size:blob.size});
+      }
+      const isOil = fd.category === OIL;
+      const updated = {
+        ...rec, id, carId: car.id, createdAt: rec.createdAt || Date.now(), updatedAt: Date.now(),
+        date: fd.date, mileage: num(fd.mileage), category: fd.category, title: fd.title.trim() || fd.category,
+        shop: fd.shop.trim(), cost: num(fd.cost), parts: fd.parts.trim(), notes: fd.notes.trim(),
+        oilType: isOil ? fd.oilType.trim() : '', oilQty: isOil ? fd.oilQty.trim() : '', oilFilter: isOil ? fd.oilFilter.trim() : '',
+        nextMiles: num(fd.nextMiles), nextDate: fd.nextDate || '', files: saved
+      };
+      await dbPut('records', updated);
+      const i = records.findIndex(r => r.id === id);
+      i >= 0 ? records[i] = updated : records.push(updated);
+      if (updated.mileage != null && updated.mileage > (car.mileage || 0)){ car.mileage = updated.mileage; await dbPut('cars', car); }
+      // remember the oil spec on the car for next time
+      if (isOil && (!car.oilType || !car.oilFilter)){
+        car.oilType = car.oilType || updated.oilType; car.oilQty = car.oilQty || updated.oilQty; car.oilFilter = car.oilFilter || updated.oilFilter;
+        await dbPut('cars', car);
+      }
+      closeModal(ov);
+      render();
+      // If this is now the latest oil change, show the "next oil change" helper
+      if (isOil && oilInfo(car)?.last.id === id) nextOilModal(car, oilInfo(car), true);
+      else toast(isNew ? 'Service logged' : 'Record saved');
+    } catch (err){
+      console.error(err); btn.disabled = false; btn.textContent = 'Save';
+      toast('Could not save: ' + (err.message || err));
+    }
+  };
+  $('[data-del]', ov) && ($('[data-del]', ov).onclick = async () => {
+    if (!await confirmBox('Delete this service record and its receipts?')) return;
+    await deleteRecordData(rec);
+    closeModal(ov); toast('Record deleted'); render();
+  });
+}
+async function deleteRecordData(rec){
+  for (const f of rec.files || []) await dbDel('files', f.id);
+  await dbDel('records', rec.id);
+  records = records.filter(r => r.id !== rec.id);
+}
+
+/* ============== Next oil change helper ================ */
+function nextOilModal(car, oil, justLogged){
+  if (!oil) return;
+  const st = oil.st;
+  const ov = openModal({
+    title: justLogged ? 'Oil change logged ✓' : 'Next oil change',
+    body: `<div class="success-hero"><div class="big">🛢️</div>
+        <h2 style="margin:6px 0 2px">${justLogged ? 'Nice work! Here’s your next one:' : esc(carName(car))}</h2>
+        <div class="muted small">${justLogged ? esc(carName(car)) + ' · ' : ''}Last changed ${fmtDate(oil.last.date)}${oil.last.mileage != null ? ' at ' + fmtMiles(oil.last.mileage) : ''}</div></div>
+      <div class="due-grid" style="margin:0">
+        <div class="due-box"><div class="lbl">Change at</div><div class="val" style="font-size:20px">${fmtMiles(oil.nextMiles)}</div><div class="sub muted">${st.milesLeft != null ? (st.milesLeft >= 0 ? st.milesLeft.toLocaleString() + ' mi from now' : (-st.milesLeft).toLocaleString() + ' mi overdue') : ''}</div></div>
+        <div class="due-box"><div class="lbl">Or by</div><div class="val" style="font-size:20px">${oil.nextDate ? fmtDate(oil.nextDate) : '—'}</div><div class="sub muted">${relDays(st.daysLeft)}</div></div>
+      </div>
+      <p class="small muted" style="margin:0;text-align:center">Whichever comes first. This also shows on your car's page and the garage.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn" data-ics ${oil.nextDate ? '' : 'disabled title="Add a due date to create a calendar reminder"'}>📅 Add to calendar</button>
+        <button class="btn" data-sticker>🏷️ Print windshield sticker</button>
+      </div>`,
+    foot: `${justLogged ? '' : `<button class="btn left" data-edit>Edit last oil change</button>`}<button class="btn primary" data-close>Done</button>`
+  });
+  $('[data-ics]', ov).onclick = () => downloadIcs(car, oil);
+  $('[data-sticker]', ov).onclick = () => printSticker(car, oil);
+  $('[data-edit]', ov) && ($('[data-edit]', ov).onclick = () => { closeModal(ov); recordForm(car, oil.last); });
+}
+function downloadIcs(car, oil){
+  const d = oil.nextDate.replace(/-/g, '');
+  const end = addMonths(oil.nextDate, 0); const e = parseDate(end); e.setDate(e.getDate()+1);
+  const stamp = new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+  const icsEsc = s => String(s).replace(/[\\;,]/g, m => '\\' + m).replace(/\n/g, '\\n');
+  const desc = `Oil change due for ${carName(car)}${oil.nextMiles != null ? ` at ${Math.round(oil.nextMiles).toLocaleString()} miles` : ''} or on this date — whichever comes first.` +
+    (oil.last.oilType ? `\nOil: ${oil.last.oilType}${oil.last.oilQty ? ' (' + oil.last.oilQty + ')' : ''}` : '') +
+    (oil.last.oilFilter ? `\nFilter: ${oil.last.oilFilter}` : '');
+  const ics = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Car Maintenance Log//EN','CALSCALE:GREGORIAN','BEGIN:VEVENT',
+    `UID:oil-${oil.last.id}@car-maintenance-log`, `DTSTAMP:${stamp}`,
+    `DTSTART;VALUE=DATE:${d}`, `DTEND;VALUE=DATE:${toDateStr(e).replace(/-/g,'')}`,
+    `SUMMARY:${icsEsc('🛢️ Oil change due – ' + carName(car))}`, `DESCRIPTION:${icsEsc(desc)}`,
+    'BEGIN:VALARM','TRIGGER:-P7D','ACTION:DISPLAY',`DESCRIPTION:${icsEsc('Oil change due in a week – ' + carName(car))}`,'END:VALARM',
+    'END:VEVENT','END:VCALENDAR'].join('\r\n');
+  download(new Blob([ics], {type:'text/calendar'}), `oil-change-${slug(carName(car))}-${oil.nextDate}.ics`);
+  toast('Calendar reminder downloaded — open it to add');
+}
+function printSticker(car, oil){
+  const area = $('#print-area');
+  area.innerHTML = `<div style="width:2.6in;border:2px solid #000;border-radius:10px;padding:12px;font-family:system-ui,sans-serif;color:#000;text-align:center">
+    <div style="font-weight:800;font-size:16px;letter-spacing:.5px">NEXT OIL CHANGE</div>
+    <div style="font-size:12px;margin-bottom:8px">${esc(carName(car))}</div>
+    <div style="font-size:11px;text-transform:uppercase">Miles</div><div style="font-size:24px;font-weight:800">${oil.nextMiles != null ? Math.round(oil.nextMiles).toLocaleString() : '—'}</div>
+    <div style="font-size:11px;text-transform:uppercase;margin-top:6px">Or date</div><div style="font-size:20px;font-weight:800">${oil.nextDate ? fmtDate(oil.nextDate) : '—'}</div>
+    <div style="font-size:10px;margin-top:8px;border-top:1px solid #000;padding-top:6px">Last: ${fmtDate(oil.last.date)}${oil.last.mileage != null ? ' @ ' + Math.round(oil.last.mileage).toLocaleString() + ' mi' : ''}${oil.last.oilType ? '<br>' + esc(oil.last.oilType) : ''}</div></div>`;
+  setTimeout(() => { window.print(); setTimeout(() => area.innerHTML = '', 500); }, 50);
+}
+
+/* =================== Record detail ==================== */
+function recordDetail(rec){
+  if (!rec) return;
+  const car = cars.find(c => c.id === rec.carId);
+  const rows = [
+    ['Date done', `${fmtDate(rec.date, {weekday:'long',year:'numeric',month:'long',day:'numeric'})} <span class="muted small">(${relDays(daysUntil(rec.date))})</span>`],
+    ['Odometer', rec.mileage != null ? fmtMiles(rec.mileage) : ''],
+    ['Type', esc(rec.category)],
+    ['Done by', esc(rec.shop)],
+    ['Cost', rec.cost != null ? fmtMoney(rec.cost) : ''],
+    ['Oil used', esc([rec.oilType, rec.oilQty].filter(Boolean).join(' · '))],
+    ['Oil filter', esc(rec.oilFilter)],
+    ['Parts', rec.parts ? `<span class="pre">${esc(rec.parts)}</span>` : ''],
+    ['Notes', rec.notes ? `<span class="pre">${esc(rec.notes)}</span>` : ''],
+    ['Next due', [rec.nextMiles != null && fmtMiles(rec.nextMiles), rec.nextDate && fmtDate(rec.nextDate)].filter(Boolean).join(' or ')],
+  ].filter(r => r[1]);
+  const files = rec.files || [];
+  const ov = openModal({
+    title: `<span class="cat ${rec.category===OIL?'oil':''}">${esc(rec.category)}</span>${esc(rec.title || rec.category)}`,
+    body: `<div>${rows.map(([k,v]) => `<div class="detail-row"><span>${k}</span><span>${v}</span></div>`).join('')}</div>
+      <div><h3>Receipts (${files.length})</h3>
+        ${files.length ? `<div class="file-list" style="margin:0">${files.map(f => `<div class="thumb lg" data-file="${f.id}">${isPdf(f.type,f.name) ? '📄 PDF' : '🖼️'}<small>${esc(f.name)}</small></div>`).join('')}</div>`
+          : '<p class="small muted" style="margin:0">No receipts attached. Edit this record to add photos or PDFs.</p>'}
+      </div>`,
+    foot: `<button class="btn danger left" data-del>Delete</button><button class="btn" data-close>Close</button><button class="btn primary" data-edit>Edit</button>`
+  });
+  $$('[data-file]', ov).forEach(async el => {
+    el.onclick = () => viewFile(el.dataset.file, rec);
+    const f = await dbGet('files', el.dataset.file);
+    if (f && isImage(f.type)) el.innerHTML = `<img src="${trackUrl(ov, f.blob)}" alt="">`;
+  });
+  $('[data-edit]', ov).onclick = () => { closeModal(ov); recordForm(car, rec); };
+  $('[data-del]', ov).onclick = async () => {
+    if (!await confirmBox('Delete this service record and its receipts?')) return;
+    await deleteRecordData(rec); closeModal(ov); toast('Record deleted'); render();
+  };
+}
+
+/* =================== Receipt viewer =================== */
+async function viewFile(fileId, rec){
+  const f = await dbGet('files', fileId);
+  if (!f){ toast('Receipt not found'); return; }
+  const files = rec?.files || [];
+  const idx = files.findIndex(x => x.id === fileId);
+  viewBlob(f.blob, f.name, files.length > 1 ? {files, idx, rec} : null);
+}
+function viewBlob(blob, name, nav){
+  name = name || blob.name || 'receipt';
+  const pdf = isPdf(blob.type, name);
+  const ov = openModal({title: '🧾 ' + esc(name), wide: true, body: '<div id="vw"></div>',
+    foot: `${nav ? `<span class="left" style="display:flex;gap:6px;align-items:center"><button class="btn sm" data-prev>‹ Prev</button><span class="small muted">${nav.idx+1} / ${nav.files.length}</span><button class="btn sm" data-next>Next ›</button></span>` : ''}
+      <button class="btn" data-open>Open in new tab</button><button class="btn" data-dl>Download</button><button class="btn primary" data-close>Close</button>`});
+  const url = trackUrl(ov, blob);
+  $('#vw', ov).innerHTML = pdf
+    ? `<iframe class="viewer-pdf" src="${url}" title="${esc(name)}"></iframe><p class="small muted" style="margin:8px 0 0;text-align:center">PDF not showing? Use “Open in new tab”.</p>`
+    : `<img class="viewer-img" src="${url}" alt="${esc(name)}">`;
+  $('[data-open]', ov).onclick = () => window.open(url, '_blank');
+  $('[data-dl]', ov).onclick = () => download(blob, name);
+  if (nav){
+    const go = d => { closeModal(ov); const n = nav.files[(nav.idx + d + nav.files.length) % nav.files.length]; viewFile(n.id, nav.rec); };
+    $('[data-prev]', ov).onclick = () => go(-1);
+    $('[data-next]', ov).onclick = () => go(1);
+  }
+}
+
+/* ==================== Import / export ==================== */
+function download(blob, name){
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const blobToDataUrl = b => new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(b); });
+const dataUrlToBlob = async u => (await fetch(u)).blob();
+
+async function exportBackup(){
+  toast('Preparing backup…');
+  const allCars = await dbAll('cars'), allRecs = await dbAll('records'), allFiles = await dbAll('files');
+  const out = {app:'car-maintenance-log', version:1, exportedAt:new Date().toISOString(),
+    cars: await Promise.all(allCars.map(async c => ({...c, photo: c.photo ? await blobToDataUrl(c.photo) : null}))),
+    records: allRecs,
+    files: await Promise.all(allFiles.map(async f => ({...f, blob: await blobToDataUrl(f.blob)})))};
+  download(new Blob([JSON.stringify(out)], {type:'application/json'}), `car-log-backup-${todayStr()}.json`);
+}
+async function importBackup(file){
+  try {
+    const data = JSON.parse(await file.text());
+    if (data.app !== 'car-maintenance-log' || !Array.isArray(data.cars)) throw new Error('Not a Car Maintenance Log backup file');
+    if (!await confirmBox(`Import ${data.cars.length} car(s), ${data.records.length} record(s) and ${data.files.length} receipt(s)? Matching items will be overwritten; everything else is kept.`, 'Import')) return;
+    for (const c of data.cars) await dbPut('cars', {...c, photo: c.photo ? await dataUrlToBlob(c.photo) : null});
+    for (const r of data.records) await dbPut('records', r);
+    for (const f of data.files) await dbPut('files', {...f, blob: await dataUrlToBlob(f.blob)});
+    await loadAll(); render(); toast('Backup imported');
+  } catch (e){ toast('Import failed: ' + e.message); }
+}
+function exportCsv(car){
+  const cols = ['Date','Odometer','Type','Title','Done by','Cost','Oil','Oil qty','Oil filter','Parts','Notes','Next due miles','Next due date','Receipts'];
+  const q = v => `"${String(v ?? '').replace(/"/g,'""')}"`;
+  const rows = carRecords(car.id).reverse().map(r => [r.date, r.mileage, r.category, r.title, r.shop, r.cost, r.oilType, r.oilQty, r.oilFilter, r.parts, r.notes, r.nextMiles, r.nextDate, (r.files||[]).map(f=>f.name).join('; ')].map(q).join(','));
+  download(new Blob(['﻿' + [cols.map(q).join(','), ...rows].join('\r\n')], {type:'text/csv'}), `${slug(carName(car))}-service-history.csv`);
+}
+
+/* ======================== Menu ======================== */
+function toggleMenu(){
+  const existing = $('.menu'); if (existing){ existing.remove(); return; }
+  const m = document.createElement('div'); m.className = 'menu';
+  m.innerHTML = `<button data-a="export">⬇️ Export backup (incl. receipts)</button><button data-a="import">⬆️ Import backup</button><button data-a="persist">🔒 Keep my data safe from cleanup</button><button data-a="storage">📊 Storage used</button>`;
+  $('#menu-btn').parentElement.appendChild(m);
+  m.onclick = async e => {
+    const a = e.target.closest('[data-a]')?.dataset.a; m.remove();
+    if (a === 'export') exportBackup();
+    if (a === 'import') $('#import-input').click();
+    if (a === 'persist'){
+      const ok = navigator.storage?.persist ? await navigator.storage.persist() : false;
+      toast(ok ? 'Storage is persistent — the browser won’t clear it automatically' : 'Browser declined — keep exporting backups to be safe');
+    }
+    if (a === 'storage'){
+      const est = navigator.storage?.estimate ? await navigator.storage.estimate() : null;
+      const files = await dbAll('files');
+      toast(`${files.length} receipts · ${est ? fmtSize(est.usage) + ' used of ' + fmtSize(est.quota) : fmtSize(files.reduce((s,f)=>s+f.size,0))}`);
+    }
+  };
+  setTimeout(() => document.addEventListener('click', function h(e){ if (!m.contains(e.target)){ m.remove(); document.removeEventListener('click', h); } }), 0);
+}
+
+/* ======================== Boot ======================== */
+async function loadAll(){ cars = await dbAll('cars'); records = await dbAll('records'); }
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-add-car]')) carForm();
+  if (e.target.closest('[data-import]')){ e.preventDefault(); $('#import-input').click(); }
+  const a = e.target.closest('a[data-open-rec]');
+  if (a && !a.closest('.upcoming-item')){ e.preventDefault(); }
+});
+$('#hdr-add-car').onclick = () => carForm();
+$('#menu-btn').onclick = e => { e.stopPropagation(); toggleMenu(); };
+$('#import-input').onchange = e => { const f = e.target.files[0]; if (f) importBackup(f); e.target.value = ''; };
+
+(async () => {
+  try {
+    db = await openDB();
+    await loadAll();
+    render();
+    if (navigator.storage?.persisted && !(await navigator.storage.persisted()) && cars.length) navigator.storage.persist?.();
+  } catch (e){
+    $('#app').innerHTML = `<div class="card pad" style="margin-top:24px"><h2>Storage unavailable</h2><p class="muted">This browser blocked local storage (private mode?). Open the log in a normal window to save your data.</p><pre class="small">${esc(e.message)}</pre></div>`;
+  }
+})();
+</script>
+</body>
+</html>
