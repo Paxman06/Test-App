@@ -173,11 +173,6 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding:24px 16px 32p
   .overlay{padding:0;align-items:flex-end}
   .modal{border-radius:16px 16px 0 0;max-height:94vh;overflow-y:auto}
 }
-@media print{
-  body *{visibility:hidden}
-  #print-area,#print-area *{visibility:visible}
-  #print-area{position:absolute;left:0;top:0}
-}
 </style>
 </head>
 <body>
@@ -194,7 +189,6 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding:24px 16px 32p
 <main class="wrap" id="app"></main>
 <footer>Your cars, records and receipts are stored privately on this device. Use <b>⋯ → Export backup</b> regularly to keep a copy.</footer>
 <input type="file" id="import-input" accept="application/json,.json" hidden>
-<div id="print-area"></div>
 
 <script>
 'use strict';
@@ -561,7 +555,7 @@ function oilCardHtml(car, oil, cur){
       <div class="due-box"><div class="lbl">Due by</div><div class="val">${oil.nextDate ? fmtDate(oil.nextDate) : '—'}</div><div class="sub muted">${daysTxt}</div></div>
     </div>
     <div class="small muted" style="margin-bottom:12px">Last done <a href="#" data-open-rec="${oil.last.id}">${fmtDate(oil.last.date)}</a>${oil.last.mileage != null ? ' at ' + fmtMiles(oil.last.mileage) : ''}${oil.last.oilType ? ' · ' + esc(oil.last.oilType) : ''}. Whichever comes first.</div>
-    <div style="display:flex;gap:8px"><button class="btn primary" style="flex:1" data-log-oil>Log oil change</button><button class="btn" data-oil-reminder title="Calendar reminder / sticker">📅 Reminder</button></div>
+    <div style="display:flex;gap:8px"><button class="btn primary" style="flex:1" data-log-oil>Log oil change</button><button class="btn" data-oil-reminder title="Calendar reminder">📅 Reminder</button></div>
   </div>`;
 }
 
@@ -911,14 +905,10 @@ function nextOilModal(car, oil, justLogged){
         <div class="due-box"><div class="lbl">Or by</div><div class="val" style="font-size:20px">${oil.nextDate ? fmtDate(oil.nextDate) : '—'}</div><div class="sub muted">${relDays(st.daysLeft)}</div></div>
       </div>
       <p class="small muted" style="margin:0;text-align:center">Whichever comes first. This also shows on your car's page and the garage.</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <button class="btn" data-ics ${oil.nextDate ? '' : 'disabled title="Add a due date to create a calendar reminder"'}>📅 Add to calendar</button>
-        <button class="btn" data-sticker>🏷️ Print windshield sticker</button>
-      </div>`,
+      <button class="btn" data-ics ${oil.nextDate ? '' : 'disabled title="Add a due date to create a calendar reminder"'}>📅 Add to calendar</button>`,
     foot: `${justLogged ? '' : `<button class="btn left" data-edit>Edit last oil change</button>`}<button class="btn primary" data-close>Done</button>`
   });
   $('[data-ics]', ov).onclick = () => downloadIcs(car, oil);
-  $('[data-sticker]', ov).onclick = () => printSticker(car, oil);
   $('[data-edit]', ov) && ($('[data-edit]', ov).onclick = () => { closeModal(ov); recordForm(car, oil.last); });
 }
 function downloadIcs(car, oil){
@@ -938,17 +928,6 @@ function downloadIcs(car, oil){
   download(new Blob([ics], {type:'text/calendar'}), `oil-change-${slug(carName(car))}-${oil.nextDate}.ics`);
   toast('Calendar reminder downloaded — open it to add');
 }
-function printSticker(car, oil){
-  const area = $('#print-area');
-  area.innerHTML = `<div style="width:2.6in;border:2px solid #000;border-radius:10px;padding:12px;font-family:system-ui,sans-serif;color:#000;text-align:center">
-    <div style="font-weight:800;font-size:16px;letter-spacing:.5px">NEXT OIL CHANGE</div>
-    <div style="font-size:12px;margin-bottom:8px">${esc(carName(car))}</div>
-    <div style="font-size:11px;text-transform:uppercase">Miles</div><div style="font-size:24px;font-weight:800">${oil.nextMiles != null ? Math.round(oil.nextMiles).toLocaleString() : '—'}</div>
-    <div style="font-size:11px;text-transform:uppercase;margin-top:6px">Or date</div><div style="font-size:20px;font-weight:800">${oil.nextDate ? fmtDate(oil.nextDate) : '—'}</div>
-    <div style="font-size:10px;margin-top:8px;border-top:1px solid #000;padding-top:6px">Last: ${fmtDate(oil.last.date)}${oil.last.mileage != null ? ' @ ' + Math.round(oil.last.mileage).toLocaleString() + ' mi' : ''}${oil.last.oilType ? '<br>' + esc(oil.last.oilType) : ''}</div></div>`;
-  setTimeout(() => { window.print(); setTimeout(() => area.innerHTML = '', 500); }, 50);
-}
-
 /* =================== Record detail ==================== */
 function recordDetail(rec){
   if (!rec) return;
